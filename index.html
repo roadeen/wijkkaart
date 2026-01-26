@@ -17,7 +17,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_e8a76b6633640bcea04fee5e37d58f59 {
+                #map_94a70c7675916ac9b940db89814adf35 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -59,14 +59,14 @@
 <body>
     
     
-            <div class="folium-map" id="map_e8a76b6633640bcea04fee5e37d58f59" ></div>
+            <div class="folium-map" id="map_94a70c7675916ac9b940db89814adf35" ></div>
         
 </body>
 <script>
     
     
-            var map_e8a76b6633640bcea04fee5e37d58f59 = L.map(
-                "map_e8a76b6633640bcea04fee5e37d58f59",
+            var map_94a70c7675916ac9b940db89814adf35 = L.map(
+                "map_94a70c7675916ac9b940db89814adf35",
                 {
                     center: [51.91713717698217, 4.467080279714653],
                     crs: L.CRS.EPSG3857,
@@ -83,7 +83,7 @@
 
         
     
-            var tile_layer_989a29cf79a2de7908e21b32eeaf9427 = L.tileLayer(
+            var tile_layer_37c25346b01274612cf5dd8e2577b208 = L.tileLayer(
                 "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
                 {
   "minZoom": 0,
@@ -100,16 +100,39 @@
             );
         
     
-            tile_layer_989a29cf79a2de7908e21b32eeaf9427.addTo(map_e8a76b6633640bcea04fee5e37d58f59);
+            tile_layer_37c25346b01274612cf5dd8e2577b208.addTo(map_94a70c7675916ac9b940db89814adf35);
         
     
-            var locate_control_25186296f886875bb45ff779b53f9da9 = L.control.locate(
+            var locate_control_b0f8e50fca3f50b78aa38a5e756ed79c = L.control.locate(
                 {"flyTo": true}
-            ).addTo(map_e8a76b6633640bcea04fee5e37d58f59);
+            ).addTo(map_94a70c7675916ac9b940db89814adf35);
             
         
     
-            var fast_marker_cluster_b22bffa79eb572c7f603819e63c6b64c = (function(){
+            var circle_marker_60728437faf48ca71d69b907b609fc2e = L.circleMarker(
+                [51.91817763, 4.467566736],
+                {"bubblingMouseEvents": true, "color": "purple", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "purple", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 15, "stroke": true, "weight": 3}
+            ).addTo(map_94a70c7675916ac9b940db89814adf35);
+        
+    
+        var popup_eac07709922159f1b5eb99484e520ea8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4f4342fc3ec2aef3ae4cc809abbe924e = $(`<div id="html_4f4342fc3ec2aef3ae4cc809abbe924e" style="width: 100.0%; height: 100.0%;"><b>TEST MARKER - Gaffelstraat 61B</b><br>Als je deze ziet, werkt de locatie!</div>`)[0];
+                popup_eac07709922159f1b5eb99484e520ea8.setContent(html_4f4342fc3ec2aef3ae4cc809abbe924e);
+            
+        
+
+        circle_marker_60728437faf48ca71d69b907b609fc2e.bindPopup(popup_eac07709922159f1b5eb99484e520ea8)
+        ;
+
+        
+    
+    
+            var fast_marker_cluster_b8e1a7c97655d3fab5e14d5d0b2481b1 = (function(){
                 var callback = 
         function (row) {
             var kleur = row[2] === 1 ? '#28a745' : '#dc3545'; 
@@ -136,12 +159,12 @@
                     marker.addTo(cluster);
                 }
 
-                cluster.addTo(map_e8a76b6633640bcea04fee5e37d58f59);
+                cluster.addTo(map_94a70c7675916ac9b940db89814adf35);
                 return cluster;
             })();
         
     
-            fast_marker_cluster_b22bffa79eb572c7f603819e63c6b64c.addTo(map_e8a76b6633640bcea04fee5e37d58f59);
+            fast_marker_cluster_b8e1a7c97655d3fab5e14d5d0b2481b1.addTo(map_94a70c7675916ac9b940db89814adf35);
         
 </script>
 </html>
