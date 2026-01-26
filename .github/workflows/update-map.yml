@@ -1,0 +1,37 @@
+name: Update Map
+
+on:
+  schedule:
+    # Runs every hour (adjust as needed)
+    - cron: '0 * * * *'  # Every hour at minute 0
+    # Alternative schedules:
+    # - cron: '*/30 * * * *'  # Every 30 minutes
+    # - cron: '0 */2 * * *'   # Every 2 hours
+    # - cron: '0 8,12,16,20 * * *'  # At 8am, 12pm, 4pm, 8pm
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  update-map:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install pandas folium gspread oauth2client PyGithub
+      
+      - name: Run map generation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.MAP_UPDATE_TOKEN }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: |
+          python generate_map.py
