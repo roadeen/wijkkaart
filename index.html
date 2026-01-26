@@ -17,7 +17,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_01cb8423b3dc6fb54151209086d7e5eb {
+                #map_525eaa046b525e06dfe9f6fbc4d44af7 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -59,14 +59,14 @@
 <body>
     
     
-            <div class="folium-map" id="map_01cb8423b3dc6fb54151209086d7e5eb" ></div>
+            <div class="folium-map" id="map_525eaa046b525e06dfe9f6fbc4d44af7" ></div>
         
 </body>
 <script>
     
     
-            var map_01cb8423b3dc6fb54151209086d7e5eb = L.map(
-                "map_01cb8423b3dc6fb54151209086d7e5eb",
+            var map_525eaa046b525e06dfe9f6fbc4d44af7 = L.map(
+                "map_525eaa046b525e06dfe9f6fbc4d44af7",
                 {
                     center: [51.91713717698217, 4.467080279714653],
                     crs: L.CRS.EPSG3857,
@@ -83,7 +83,7 @@
 
         
     
-            var tile_layer_9ccaaa36a5cb85a723a433936a7d8771 = L.tileLayer(
+            var tile_layer_f47480da2725011efec9c800bd86e640 = L.tileLayer(
                 "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
                 {
   "minZoom": 0,
@@ -100,16 +100,16 @@
             );
         
     
-            tile_layer_9ccaaa36a5cb85a723a433936a7d8771.addTo(map_01cb8423b3dc6fb54151209086d7e5eb);
+            tile_layer_f47480da2725011efec9c800bd86e640.addTo(map_525eaa046b525e06dfe9f6fbc4d44af7);
         
     
-            var locate_control_7b28f226db000bf40c4a17f899ec2e13 = L.control.locate(
+            var locate_control_e6ffc341b2e875af6c97f4da87de0962 = L.control.locate(
                 {"flyTo": true}
-            ).addTo(map_01cb8423b3dc6fb54151209086d7e5eb);
+            ).addTo(map_525eaa046b525e06dfe9f6fbc4d44af7);
             
         
     
-            var fast_marker_cluster_417113b06fe04fe5300e2aa13d443241 = (function(){
+            var fast_marker_cluster_ad899b71340db53a4f306014f92499ad = (function(){
                 var callback = 
         function (row) {
             var kleur = row[2] === 1 ? '#28a745' : '#dc3545'; 
@@ -135,12 +135,12 @@
                     marker.addTo(cluster);
                 }
 
-                cluster.addTo(map_01cb8423b3dc6fb54151209086d7e5eb);
+                cluster.addTo(map_525eaa046b525e06dfe9f6fbc4d44af7);
                 return cluster;
             })();
         
     
-            fast_marker_cluster_417113b06fe04fe5300e2aa13d443241.addTo(map_01cb8423b3dc6fb54151209086d7e5eb);
+            fast_marker_cluster_ad899b71340db53a4f306014f92499ad.addTo(map_525eaa046b525e06dfe9f6fbc4d44af7);
         
 </script>
 </html>
