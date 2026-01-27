@@ -78,8 +78,7 @@ def generate_interactive_map():
             }}
         }});
         
-        // Use child markers count for cluster size (not address count)
-        var childCount = cluster.getChildCount();
+        // Use total addresses for cluster size, not marker count
         var percentage = totalAddresses > 0 ? (doneAddresses / totalAddresses) * 100 : 0;
         var color;
         
@@ -92,9 +91,13 @@ def generate_interactive_map():
         var borderColor = hasOpmerking ? '{OPMERKING_COLOR}' : 'white';
         var borderWidth = hasOpmerking ? '4px' : '3px';
         
-        // Show number of markers in cluster, not total addresses
+        // Show total number of addresses in cluster (not number of markers)
+        // Adjust font size for large numbers
+        var fontSize = totalAddresses > 99 ? '11px' : (totalAddresses > 9 ? '13px' : '14px');
+        var displayNumber = totalAddresses > 999 ? '999+' : totalAddresses;
+        
         return L.divIcon({{
-            html: '<div style="background-color:' + color + '; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: ' + borderWidth + ' solid ' + borderColor + '; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">' + childCount + '</span></div>',
+            html: '<div style="background-color:' + color + '; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: ' + borderWidth + ' solid ' + borderColor + '; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: ' + fontSize + ';">' + displayNumber + '</span></div>',
             className: 'marker-cluster-custom',
             iconSize: L.point(40, 40)
         }});
@@ -298,12 +301,12 @@ def generate_interactive_map():
             tooltip=f"{len(addresses)} adres{'sen' if len(addresses) > 1 else ''}"
         )
         
-        # Store metadata for clustering
+        # Store metadata for clustering - CRITICAL: Store address count
         marker.options['done'] = all_done
         marker.options['hasOpmerking'] = has_opmerking
         marker.options['addressCount'] = len(addresses)
-        marker.options['totalAddresses'] = len(addresses)
-        marker.options['doneAddresses'] = done_addresses
+        marker.options['totalAddresses'] = len(addresses)  # This is what the cluster function uses
+        marker.options['doneAddresses'] = done_addresses   # This is what the cluster function uses
         
         # Add to cluster
         marker.add_to(marker_cluster)
@@ -334,6 +337,22 @@ def generate_interactive_map():
         .leaflet-popup {
             pointer-events: auto !important;
         }
+        
+        /* Custom styling for cluster icons */
+        .marker-cluster-custom {
+            background-clip: padding-box;
+            border-radius: 20px;
+        }
+        .marker-cluster-custom div {
+            width: 40px;
+            height: 40px;
+            margin-left: 0;
+            margin-top: 0;
+            text-align: center;
+            border-radius: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
         @media (max-width: 768px) {
             .leaflet-popup {
                 max-width: 90vw !important;
