@@ -164,67 +164,67 @@ def generate_interactive_map():
                 skipped_addresses.append(f"{row['Adres']} (buiten Nederland: lat={lat}, lon={lon})")
                 continue
             
-is_done = str(row['Afgevinkt']).strip().lower() == 'ja'
+                is_done = str(row['Afgevinkt']).strip().lower() == 'ja'
 
-# Check voor opmerkingen
-has_opmerking = False
-opmerkingen = ""
-if 'Opmerkingen' in row and row['Opmerkingen']:
-    opmerking_text = str(row['Opmerkingen']).strip()
-    if opmerking_text and opmerking_text.lower() != 'nan':
-        has_opmerking = True
-        opmerking_count += 1
-        # Escape HTML special characters
-        opmerking_text = opmerking_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        opmerkingen = f"<br><hr style='margin: 8px 0;'><b>💬 Opmerkingen:</b><br><i>{opmerking_text}</i>"
+                # Check voor opmerkingen
+                has_opmerking = False
+                opmerkingen = ""
+                if 'Opmerkingen' in row and row['Opmerkingen']:
+                    opmerking_text = str(row['Opmerkingen']).strip()
+                    if opmerking_text and opmerking_text.lower() != 'nan':
+                        has_opmerking = True
+                        opmerking_count += 1
+                        # Escape HTML special characters
+                        opmerking_text = opmerking_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                        opmerkingen = f"<br><hr style='margin: 8px 0;'><b>💬 Opmerkingen:</b><br><i>{opmerking_text}</i>"
 
-# Bepaal kleur: paars als opmerking, anders groen/rood
-if has_opmerking:
-    kleur = OPMERKING_COLOR
-else:
-    kleur = '#28a745' if is_done else '#dc3545'
+                # Bepaal kleur: paars als opmerking, anders groen/rood
+                if has_opmerking:
+                    kleur = OPMERKING_COLOR
+                else:
+                    kleur = '#28a745' if is_done else '#dc3545'
 
-# Bereken popup (NA het bepalen van opmerkingen)
-popup_html = f"""
-    <div style='min-width: 150px; max-width: 300px; font-family: Arial, sans-serif; word-wrap: break-word; overflow-wrap: break-word;'>
-        <b style='font-size: 14px;'>{row['Adres']}</b><br>
-        <span style='font-size: 12px;'>Status: {'✅ Afgevinkt' if is_done else '❌ Niet afgevinkt'}</span>
-        {opmerkingen}
-    </div>
-"""
+                # Bereken popup (NA het bepalen van opmerkingen)
+                popup_html = f"""
+                    <div style='min-width: 150px; max-width: 300px; font-family: Arial, sans-serif; word-wrap: break-word; overflow-wrap: break-word;'>
+                        <b style='font-size: 14px;'>{row['Adres']}</b><br>
+                        <span style='font-size: 12px;'>Status: {'✅ Afgevinkt' if is_done else '❌ Niet afgevinkt'}</span>
+                        {opmerkingen}
+                    </div>
+                """
 
-# Pas offset toe voor overlappende markers
-loc_key = f"{lat:.6f},{lon:.6f}"
-marker_lat = lat
-marker_lon = lon
+                # Pas offset toe voor overlappende markers
+                loc_key = f"{lat:.6f},{lon:.6f}"
+                marker_lat = lat
+                marker_lon = lon
 
-if loc_key in location_counts:
-    location_counts[loc_key] += 1
-    offset = location_counts[loc_key] * 0.00001
-    marker_lat += offset
-    marker_lon += offset
-else:
-    location_counts[loc_key] = 0
+                if loc_key in location_counts:
+                    location_counts[loc_key] += 1
+                    offset = location_counts[loc_key] * 0.00001
+                    marker_lat += offset
+                    marker_lon += offset
+                else:
+                    location_counts[loc_key] = 0
 
-# Voeg marker toe met properties voor cluster kleuring
-marker = folium.CircleMarker(
-    location=[marker_lat, marker_lon],
-    radius=7,
-    popup=folium.Popup(popup_html, max_width=300),
-    color='white',
-    weight=1.5,
-    fill=True,
-    fillColor=kleur,
-    fillOpacity=0.85
-)
+                # Voeg marker toe met properties voor cluster kleuring
+                marker = folium.CircleMarker(
+                    location=[marker_lat, marker_lon],
+                    radius=7,
+                    popup=folium.Popup(popup_html, max_width=300),
+                    color='white',
+                    weight=1.5,
+                    fill=True,
+                    fillColor=kleur,
+                    fillOpacity=0.85
+                )
 
-# Voeg custom properties toe
-marker.options['done'] = is_done
-marker.options['hasOpmerking'] = has_opmerking
+                # Voeg custom properties toe
+                marker.options['done'] = is_done
+                marker.options['hasOpmerking'] = has_opmerking
 
-marker.add_to(marker_cluster)
+                marker.add_to(marker_cluster)
 
-added_count += 1
+                added_count += 1
             
         except (ValueError, TypeError, KeyError) as e:
             skipped_addresses.append(f"{row.get('Adres', 'Onbekend adres')} (fout: {e})")
