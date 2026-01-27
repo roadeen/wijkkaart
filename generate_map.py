@@ -141,7 +141,10 @@ def generate_interactive_map():
                     has_opmerking = True
                     opmerking_count += 1
                     opmerking_text = opmerking_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                    opmerkingen = f"<br><hr style='margin: 8px 0;'><b>💬 Opmerkingen:</b><br><i>{opmerking_text}</i>"
+                    opmerkingen = f"""<br><hr style='margin: 8px 0;'><b>💬 Opmerkingen:</b><br>
+                    <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 280px;'>
+                        <i>{opmerking_text}</i>
+                    </div>"""
 
             kleur = OPMERKING_COLOR if has_opmerking else ('#28a745' if is_done else '#dc3545')
 
@@ -164,10 +167,11 @@ def generate_interactive_map():
             else:
                 location_counts[loc_key] = 0
 
+            # Create the marker with the popup - increased max_width for better text wrapping
             marker = folium.CircleMarker(
                 location=[marker_lat, marker_lon],
                 radius=7,
-                popup=folium.Popup(popup_html, max_width=300),
+                popup=folium.Popup(popup_html, max_width=350),  # Increased from 300 to 350
                 color='white',
                 weight=1.5,
                 fill=True,
