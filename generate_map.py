@@ -184,15 +184,7 @@ def generate_interactive_map():
             else:
                 kleur = '#28a745' if is_done else '#dc3545'
             
-            loc_key = f"{lat:.6f},{lon:.6f}"
-            if loc_key in location_counts:
-                location_counts[loc_key] += 1
-                offset = location_counts[loc_key] * 0.00001
-                lat += offset
-                lon += offset
-            else:
-                location_counts[loc_key] = 0
-            
+                # Bereken popup VOOR we de offset toepassen
                 popup_html = f"""
                     <div style='min-width: 150px; max-width: 300px; font-family: Arial, sans-serif; word-wrap: break-word; overflow-wrap: break-word;'>
                         <b style='font-size: 14px;'>{row['Adres']}</b><br>
@@ -200,10 +192,23 @@ def generate_interactive_map():
                         {opmerkingen}
                     </div>
                 """
-            
-            # Voeg marker toe met properties voor cluster kleuring
-            marker = folium.CircleMarker(
-                location=[lat, lon],
+
+                # Pas offset toe voor overlappende markers
+                loc_key = f"{lat:.6f},{lon:.6f}"
+                marker_lat = lat
+                marker_lon = lon
+
+                if loc_key in location_counts:
+                    location_counts[loc_key] += 1
+                    offset = location_counts[loc_key] * 0.00001
+                    marker_lat += offset
+                    marker_lon += offset
+                else:
+                    location_counts[loc_key] = 0
+
+                # Voeg marker toe met properties voor cluster kleuring
+                marker = folium.CircleMarker(
+                    location=[marker_lat, marker_lon],
                 radius=7,
                 popup=folium.Popup(popup_html, max_width=300),
                 color='white',
