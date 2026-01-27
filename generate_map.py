@@ -113,8 +113,11 @@ def generate_interactive_map():
     skipped_addresses = []
     added_count = 0
     opmerking_count = 0
-    location_counts = {}
+    
+    # Dictionary to group addresses by location
+    address_groups = {}
 
+    # First pass: Group addresses by coordinates
     for idx, row in df.iterrows():
         try:
             lat = float(row['lat'])
@@ -129,66 +132,154 @@ def generate_interactive_map():
                 skipped_addresses.append(f"{row['Adres']} (buiten NL)")
                 continue
             
-            # --- FIXED INDENTATION START ---
-            is_done = str(row['Afgevinkt']).strip().lower() == 'ja'
-
-            # Check voor opmerkingen
-            has_opmerking = False
-            opmerkingen = ""
-            if 'Opmerkingen' in row and row['Opmerkingen']:
-                opmerking_text = str(row['Opmerkingen']).strip()
-                if opmerking_text and opmerking_text.lower() != 'nan':
-                    has_opmerking = True
-                    opmerking_count += 1
-                    opmerking_text = opmerking_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                    opmerkingen = f"""<br><hr style='margin: 8px 0;'><b>💬 Opmerkingen:</b><br>
-                    <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 280px;'>
-                        <i>{opmerking_text}</i>
-                    </div>"""
-
-            kleur = OPMERKING_COLOR if has_opmerking else ('#28a745' if is_done else '#dc3545')
-
-            popup_html = f"""
-                <div style='min-width: 150px; max-width: 300px; font-family: Arial, sans-serif;'>
-                    <b style='font-size: 14px;'>{row['Adres']}</b><br>
-                    <span style='font-size: 12px;'>Status: {'✅ Afgevinkt' if is_done else '❌ Niet afgevinkt'}</span>
-                    {opmerkingen}
-                </div>
-            """
-
-            # Offset logic
+            # Group by coordinates
             loc_key = f"{lat:.6f},{lon:.6f}"
-            marker_lat, marker_lon = lat, lon
-            if loc_key in location_counts:
-                location_counts[loc_key] += 1
-                offset = location_counts[loc_key] * 0.00001
-                marker_lat += offset
-                marker_lon += offset
-            else:
-                location_counts[loc_key] = 0
-
-            # Create the marker with the popup - increased max_width for better text wrapping
-            marker = folium.CircleMarker(
-                location=[marker_lat, marker_lon],
-                radius=7,
-                popup=folium.Popup(popup_html, max_width=350),  # Increased from 300 to 350
-                color='white',
-                weight=1.5,
-                fill=True,
-                fillColor=kleur,
-                fillOpacity=0.85
-            )
-
-            marker.options['done'] = is_done
-            marker.options['hasOpmerking'] = has_opmerking
-            marker.add_to(marker_cluster)
-            added_count += 1
-            # --- FIXED INDENTATION END ---
+            
+            if loc_key not in address_groups:
+                address_groups[loc_key] = {
+                    'lat': lat,
+                    'lon': lon,
+                    'addresses': []
+                }
+            
+            address_groups[loc_key]['addresses'].append(row)
             
         except Exception as e:
             skipped_addresses.append(f"{row.get('Adres', 'Onbekend')} (fout: {e})")
 
+    # Second pass: Create one marker per group
+    for loc_key, group_data in address_groups.items():
+        lat = group_data['lat']
+        lon = group_data['lon']
+        addresses = group_data['addresses']
+        
+        # Count opmerkingen for this group
+        group_opmerking_count = 0
+        opmerkingen_list = []
+        
+        # Start building popup content
+        popup_content = f"""
+        <div style='min-width: 200px; max-width: 400px; font-family: Arial, sans-serif;'>
+            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;'>
+                <b style='font-size: 14px;'>📍 {len(addresses)} adres{'sen' if len(addresses) > 1 else ''} op deze locatie:</b>
+            </div>
+        """
+        
+        all_done = True
+        has_opmerking = False
+        
+        for idx, row in enumerate(addresses):
+            is_done = str(row.get('Afgevinkt', '')).strip().lower() == 'ja'
+            if not is_done:
+                all_done = False
+            
+            adres = row.get('Adres', 'Onbekend adres')
+            
+            # Check voor opmerkingen
+            row_opmerking = ""
+            if 'Opmerkingen' in row and row['Opmerkingen']:
+                opmerking_text = str(row['Opmerkingen']).strip()
+                if opmerking_text and opmerking_text.lower() != 'nan':
+                    has_opmerking = True
+                    group_opmerking_count += 1
+                    opmerking_text = opmerking_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    
+                    # Add to list for summary
+                    opmerkingen_list.append({
+                        'adres': adres,
+                        'text': opmerking_text
+                    })
+                    
+                    row_opmerking = f"""
+                    <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; 
+                                margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 3px;
+                                border-left: 3px solid {OPMERKING_COLOR}; font-size: 11px;'>
+                        <b>💬 Opmerking:</b> {opmerking_text}
+                    </div>
+                    """
+            
+            # Determine color for status indicator
+            status_color = '#28a745' if is_done else '#dc3545'
+            status_icon = '✅' if is_done else '❌'
+            
+            popup_content += f"""
+            <div style='margin-bottom: 12px; padding-bottom: 12px; 
+                        border-bottom: {'1px solid #eee' if idx < len(addresses) - 1 else 'none'};'>
+                <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;'>
+                    <b style='font-size: 13px;'>{idx+1}. {adres}</b>
+                    <span style='font-size: 11px; color: {status_color}; font-weight: bold;'>
+                        {status_icon} {'Afgevinkt' if is_done else 'Niet afgevinkt'}
+                    </span>
+                </div>
+                {row_opmerking}
+            </div>
+            """
+        
+        # Add opmerkingen summary if any
+        if has_opmerking:
+            opmerking_count += group_opmerking_count
+            
+            popup_content += f"""
+            <div style='background-color: #f8f0ff; padding: 10px; border-radius: 5px; margin-top: 15px; 
+                        border-left: 4px solid {OPMERKING_COLOR};'>
+                <b style='color: {OPMERKING_COLOR}; font-size: 13px;'>💬 Opmerkingen op deze locatie ({group_opmerking_count}):</b>
+            """
+            
+            for opm in opmerkingen_list:
+                popup_content += f"""
+                <div style='margin: 8px 0; padding: 8px; background: white; border-radius: 3px;'>
+                    <b style='font-size: 12px;'>{opm['adres']}:</b>
+                    <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; 
+                                font-size: 11px; color: #555; margin-top: 3px;'>
+                        {opm['text']}
+                    </div>
+                </div>
+                """
+            
+            popup_content += "</div>"
+        
+        popup_content += "</div>"
+        
+        # Determine marker color
+        kleur = OPMERKING_COLOR if has_opmerking else ('#28a745' if all_done else '#dc3545')
+        
+        # Adjust marker size based on number of addresses (7-12px radius)
+        marker_size = 7 + min(len(addresses) - 1, 5)
+        
+        # Create the marker
+        marker = folium.CircleMarker(
+            location=[lat, lon],
+            radius=marker_size,
+            popup=folium.Popup(popup_content, max_width=450),
+            color='white',
+            weight=2,
+            fill=True,
+            fillColor=kleur,
+            fillOpacity=0.85,
+            tooltip=f"{len(addresses)} adres{'sen' if len(addresses) > 1 else ''}"
+        )
+        
+        # Store metadata for clustering
+        marker.options['done'] = all_done
+        marker.options['hasOpmerking'] = has_opmerking
+        marker.options['addressCount'] = len(addresses)
+        
+        # Add to cluster
+        marker.add_to(marker_cluster)
+        added_count += len(addresses)
+
     marker_cluster.add_to(m)
+
+    # Summary statistics
+    print(f"📍 Groepen gemaakt: {len(address_groups)}")
+    print(f"📝 Opmerkingen geteld: {opmerking_count}")
+    
+    if skipped_addresses:
+        print(f"\n⚠️  Overgeslagen adressen ({len(skipped_addresses)}):")
+        for addr in skipped_addresses[:10]:  # Show first 10
+            print(f"   - {addr}")
+        if len(skipped_addresses) > 10:
+            print(f"   ... en {len(skipped_addresses) - 10} meer")
 
     # Save and Upload
     m.save(LOCAL_OUTPUT)
@@ -200,8 +291,8 @@ def generate_interactive_map():
         g = Github(auth=auth)
         repo = g.get_repo(REPO_NAME)
         contents = repo.get_contents(FILE_PATH_IN_REPO)
-        repo.update_file(contents.path, f"Update: {added_count} markers", content, contents.sha)
-        print(f"✅ Succes! {added_count} markers op de kaart.")
+        repo.update_file(contents.path, f"Update: {added_count} markers ({len(address_groups)} groepen)", content, contents.sha)
+        print(f"✅ Succes! {added_count} adressen in {len(address_groups)} markers op de kaart.")
     except Exception as e:
         print(f"❌ GitHub fout: {e}")
 
