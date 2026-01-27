@@ -108,7 +108,7 @@ def generate_interactive_map():
         icon_create_function=icon_create_function,
         options={
             'maxClusterRadius': 30,
-            'disableClusteringAtZoom': 19,  # Increased for better mobile experience
+            'disableClusteringAtZoom': 19,
             'spiderfyOnMaxZoom': True,
             'showCoverageOnHover': False,
             'spiderfyDistanceMultiplier': 1.5,
@@ -253,8 +253,25 @@ def generate_interactive_map():
         
         popup_content += "</div>"
         
-        # Determine marker color
-        kleur = OPMERKING_COLOR if has_opmerking else ('#28a745' if all_done else '#dc3545')
+        # Calculate percentage done for this group
+        total_addresses = len(addresses)
+        percentage_done = (done_addresses / total_addresses) * 100 if total_addresses > 0 else 0
+        
+        # Determine fill color based on percentage done (same logic as clusters)
+        if percentage_done == 100:
+            fill_color = '#28a745'  # Green
+        elif percentage_done >= 75:
+            fill_color = '#7cb342'  # Light green
+        elif percentage_done >= 50:
+            fill_color = '#ffc107'  # Yellow
+        elif percentage_done >= 25:
+            fill_color = '#fd7e14'  # Orange
+        else:
+            fill_color = '#dc3545'  # Red
+        
+        # Determine border color and width
+        border_color = OPMERKING_COLOR if has_opmerking else 'white'
+        border_width = 3 if has_opmerking else 1.5
         
         # Adjust marker size based on number of addresses (7-12px radius)
         marker_size = 7 + min(len(addresses) - 1, 5)
@@ -267,21 +284,21 @@ def generate_interactive_map():
                 popup_content, 
                 max_width=450,
                 max_height=500,
-                sticky=False,  # Important for mobile - doesn't stick to cursor
+                sticky=False,
                 close_button=True,
-                auto_close=False,  # Don't auto-close on mobile
+                auto_close=False,
                 close_on_escape_key=True,
                 keep_in_front=True
             ),
-            color='white',
-            weight=2,
+            color=border_color,  # Border color
+            weight=border_width,  # Border width
             fill=True,
-            fillColor=kleur,
+            fillColor=fill_color,  # Fill color based on percentage done
             fillOpacity=0.85,
             tooltip=f"{len(addresses)} adres{'sen' if len(addresses) > 1 else ''}"
         )
         
-        # Store metadata for clustering - FIXED: Use correct property names
+        # Store metadata for clustering
         marker.options['done'] = all_done
         marker.options['hasOpmerking'] = has_opmerking
         marker.options['addressCount'] = len(addresses)
@@ -325,6 +342,11 @@ def generate_interactive_map():
                 max-height: 70vh;
                 overflow: hidden;
             }
+        }
+        
+        /* Custom styling for individual markers with opmerkingen */
+        .marker-with-opmerking {
+            filter: drop-shadow(0 0 2px rgba(155, 89, 182, 0.5));
         }
     </style>
     """))
