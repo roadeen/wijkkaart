@@ -110,9 +110,9 @@ def generate_interactive_map():
         var color;
         
         if (percentage === 100) {{
-            color = '#28a745';  // Groen: 100% klaar
+            color = '#28a745';  // Donkergroen: 100% klaar
         }} else if (percentage >= 75) {{
-            color = '#5cb85c';  // Lichtgroen: 75-99% klaar
+            color = '#7cb342';  // Lime groen: 75-99% klaar (was #5cb85c)
         }} else if (percentage >= 50) {{
             color = '#ffc107';  // Geel: 50-74% klaar
         }} else if (percentage >= 25) {{
