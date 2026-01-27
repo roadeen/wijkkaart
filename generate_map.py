@@ -56,28 +56,31 @@ def generate_interactive_map():
     m = folium.Map(
         location=[df['lat'].mean(), df['lon'].mean()], 
         zoom_start=16, 
-        tiles='cartodbpositron'
+        tiles='cartodbpositron',
+        control_scale=True
     )
 
     LocateControl(auto_start=False, flyTo=True).add_to(m)
 
     icon_create_function = f"""
     function(cluster) {{
-        var markers = cluster.getAllChildMarkers();
-        var total = markers.length;
-        var done = 0;
+        var childMarkers = cluster.getAllChildMarkers();
+        var totalAddresses = 0;
+        var doneAddresses = 0;
         var hasOpmerking = false;
         
-        markers.forEach(function(marker) {{
+        // Calculate totals from all addresses in all group markers
+        childMarkers.forEach(function(marker) {{
+            totalAddresses += marker.options.totalAddresses || 1;
+            doneAddresses += marker.options.doneAddresses || 0;
             if (marker.options.hasOpmerking) {{
                 hasOpmerking = true;
             }}
-            if (marker.options.done) {{
-                done++;
-            }}
         }});
         
-        var percentage = (done / total) * 100;
+        // Use child markers count for cluster size (not address count)
+        var childCount = cluster.getChildCount();
+        var percentage = totalAddresses > 0 ? (doneAddresses / totalAddresses) * 100 : 0;
         var color;
         
         if (percentage === 100) {{ color = '#28a745'; }}
@@ -89,8 +92,9 @@ def generate_interactive_map():
         var borderColor = hasOpmerking ? '{OPMERKING_COLOR}' : 'white';
         var borderWidth = hasOpmerking ? '4px' : '3px';
         
+        // Show number of markers in cluster, not total addresses
         return L.divIcon({{
-            html: '<div style="background-color:' + color + '; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: ' + borderWidth + ' solid ' + borderColor + '; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">' + total + '</span></div>',
+            html: '<div style="background-color:' + color + '; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: ' + borderWidth + ' solid ' + borderColor + '; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><span style="color: white; font-weight: bold; font-size: 14px;">' + childCount + '</span></div>',
             className: 'marker-cluster-custom',
             iconSize: L.point(40, 40)
         }});
@@ -104,9 +108,12 @@ def generate_interactive_map():
         icon_create_function=icon_create_function,
         options={
             'maxClusterRadius': 30,
-            'disableClusteringAtZoom': 18,
+            'disableClusteringAtZoom': 19,  # Increased for better mobile experience
             'spiderfyOnMaxZoom': True,
-            'showCoverageOnHover': False
+            'showCoverageOnHover': False,
+            'spiderfyDistanceMultiplier': 1.5,
+            'singleMarkerMode': False,
+            'zoomToBoundsOnClick': True
         }
     )
 
@@ -156,13 +163,15 @@ def generate_interactive_map():
         # Count opmerkingen for this group
         group_opmerking_count = 0
         opmerkingen_list = []
+        done_addresses = 0
         
         # Start building popup content
         popup_content = f"""
-        <div style='min-width: 200px; max-width: 400px; font-family: Arial, sans-serif;'>
-            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;'>
-                <b style='font-size: 14px;'>📍 {len(addresses)} adres{'sen' if len(addresses) > 1 else ''} op deze locatie:</b>
+        <div style='min-width: 250px; max-width: 400px; font-family: Arial, sans-serif;'>
+            <div style='background-color: #f8f9fa; padding: 12px; border-radius: 5px; margin-bottom: 12px; border-left: 4px solid #007bff;'>
+                <b style='font-size: 15px; color: #333;'>📍 {len(addresses)} adres{'sen' if len(addresses) > 1 else ''} op deze locatie</b>
             </div>
+            <div style='max-height: 400px; overflow-y: auto; padding-right: 5px;'>
         """
         
         all_done = True
@@ -170,7 +179,9 @@ def generate_interactive_map():
         
         for idx, row in enumerate(addresses):
             is_done = str(row.get('Afgevinkt', '')).strip().lower() == 'ja'
-            if not is_done:
+            if is_done:
+                done_addresses += 1
+            else:
                 all_done = False
             
             adres = row.get('Adres', 'Onbekend adres')
@@ -192,8 +203,8 @@ def generate_interactive_map():
                     
                     row_opmerking = f"""
                     <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; 
-                                margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 3px;
-                                border-left: 3px solid {OPMERKING_COLOR}; font-size: 11px;'>
+                                margin: 5px 0; padding: 8px; background: #f8f0ff; border-radius: 4px;
+                                border-left: 3px solid {OPMERKING_COLOR}; font-size: 12px;'>
                         <b>💬 Opmerking:</b> {opmerking_text}
                     </div>
                     """
@@ -205,9 +216,9 @@ def generate_interactive_map():
             popup_content += f"""
             <div style='margin-bottom: 12px; padding-bottom: 12px; 
                         border-bottom: {'1px solid #eee' if idx < len(addresses) - 1 else 'none'};'>
-                <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;'>
-                    <b style='font-size: 13px;'>{idx+1}. {adres}</b>
-                    <span style='font-size: 11px; color: {status_color}; font-weight: bold;'>
+                <div style='display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;'>
+                    <b style='font-size: 13px; line-height: 1.4; flex: 1; margin-right: 10px;'>{idx+1}. {adres}</b>
+                    <span style='font-size: 11px; color: {status_color}; font-weight: bold; white-space: nowrap;'>
                         {status_icon} {'Afgevinkt' if is_done else 'Niet afgevinkt'}
                     </span>
                 </div>
@@ -215,22 +226,24 @@ def generate_interactive_map():
             </div>
             """
         
+        popup_content += "</div>"  # Close the scrollable div
+        
         # Add opmerkingen summary if any
         if has_opmerking:
             opmerking_count += group_opmerking_count
             
             popup_content += f"""
-            <div style='background-color: #f8f0ff; padding: 10px; border-radius: 5px; margin-top: 15px; 
+            <div style='background-color: #f8f0ff; padding: 12px; border-radius: 5px; margin-top: 15px; 
                         border-left: 4px solid {OPMERKING_COLOR};'>
-                <b style='color: {OPMERKING_COLOR}; font-size: 13px;'>💬 Opmerkingen op deze locatie ({group_opmerking_count}):</b>
+                <b style='color: {OPMERKING_COLOR}; font-size: 14px;'>💬 Opmerkingen op deze locatie ({group_opmerking_count}):</b>
             """
             
             for opm in opmerkingen_list:
                 popup_content += f"""
-                <div style='margin: 8px 0; padding: 8px; background: white; border-radius: 3px;'>
+                <div style='margin: 8px 0; padding: 8px; background: white; border-radius: 4px;'>
                     <b style='font-size: 12px;'>{opm['adres']}:</b>
                     <div style='word-wrap: break-word; overflow-wrap: break-word; white-space: normal; 
-                                font-size: 11px; color: #555; margin-top: 3px;'>
+                                font-size: 12px; color: #555; margin-top: 4px;'>
                         {opm['text']}
                     </div>
                 </div>
@@ -246,11 +259,20 @@ def generate_interactive_map():
         # Adjust marker size based on number of addresses (7-12px radius)
         marker_size = 7 + min(len(addresses) - 1, 5)
         
-        # Create the marker
+        # Create the marker with mobile-friendly popup settings
         marker = folium.CircleMarker(
             location=[lat, lon],
             radius=marker_size,
-            popup=folium.Popup(popup_content, max_width=450),
+            popup=folium.Popup(
+                popup_content, 
+                max_width=450,
+                max_height=500,
+                sticky=False,  # Important for mobile - doesn't stick to cursor
+                close_button=True,
+                auto_close=False,  # Don't auto-close on mobile
+                close_on_escape_key=True,
+                keep_in_front=True
+            ),
             color='white',
             weight=2,
             fill=True,
@@ -259,16 +281,53 @@ def generate_interactive_map():
             tooltip=f"{len(addresses)} adres{'sen' if len(addresses) > 1 else ''}"
         )
         
-        # Store metadata for clustering
+        # Store metadata for clustering - FIXED: Use correct property names
         marker.options['done'] = all_done
         marker.options['hasOpmerking'] = has_opmerking
         marker.options['addressCount'] = len(addresses)
+        marker.options['totalAddresses'] = len(addresses)
+        marker.options['doneAddresses'] = done_addresses
         
         # Add to cluster
         marker.add_to(marker_cluster)
         added_count += len(addresses)
 
     marker_cluster.add_to(m)
+
+    # Add CSS for better mobile experience
+    m.get_root().html.add_child(folium.Element("""
+    <style>
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+        }
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 0;
+        }
+        .leaflet-popup-tip {
+            width: 12px;
+            height: 12px;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+            padding: 10px;
+            font-size: 16px;
+            color: #666;
+        }
+        .leaflet-popup {
+            pointer-events: auto !important;
+        }
+        @media (max-width: 768px) {
+            .leaflet-popup {
+                max-width: 90vw !important;
+            }
+            .leaflet-popup-content-wrapper {
+                max-height: 70vh;
+                overflow: hidden;
+            }
+        }
+    </style>
+    """))
 
     # Summary statistics
     print(f"📍 Groepen gemaakt: {len(address_groups)}")
@@ -283,6 +342,18 @@ def generate_interactive_map():
 
     # Save and Upload
     m.save(LOCAL_OUTPUT)
+    
+    # Also add mobile meta tags to the HTML
+    with open(LOCAL_OUTPUT, "r", encoding='utf-8') as f:
+        content = f.read()
+    
+    # Add mobile-friendly meta tags
+    meta_tags = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
+    content = content.replace('<head>', '<head>' + meta_tags)
+    
+    with open(LOCAL_OUTPUT, "w", encoding='utf-8') as f:
+        f.write(content)
+    
     with open(LOCAL_OUTPUT, "r", encoding='utf-8') as f:
         content = f.read()
 
