@@ -193,13 +193,13 @@ def generate_interactive_map():
             else:
                 location_counts[loc_key] = 0
             
-            popup_html = f"""
-                <div style='min-width: 150px; font-family: Arial, sans-serif;'>
-                    <b style='font-size: 14px;'>{row['Adres']}</b><br>
-                    <span style='font-size: 12px;'>Status: {'✅ Afgevinkt' if is_done else '❌ Niet afgevinkt'}</span>
-                    {opmerkingen}
-                </div>
-            """
+                popup_html = f"""
+                    <div style='min-width: 150px; max-width: 300px; font-family: Arial, sans-serif; word-wrap: break-word; overflow-wrap: break-word;'>
+                        <b style='font-size: 14px;'>{row['Adres']}</b><br>
+                        <span style='font-size: 12px;'>Status: {'✅ Afgevinkt' if is_done else '❌ Niet afgevinkt'}</span>
+                        {opmerkingen}
+                    </div>
+                """
             
             # Voeg marker toe met properties voor cluster kleuring
             marker = folium.CircleMarker(
