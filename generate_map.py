@@ -43,7 +43,7 @@ def generate_interactive_map():
     try:
         creds = get_credentials()
         client = gspread.authorize(creds)
-        sheet = client.open(sheet_name).("Master_Sheet")
+        sheet = client.open(sheet_name).worksheet("Master_Sheet")
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
     except Exception as e:
