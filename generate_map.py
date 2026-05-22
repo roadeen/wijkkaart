@@ -12,7 +12,7 @@ import json
 # ----------------------------
 # 1. Instellingen
 # ----------------------------
-sheet_name = "Adressen_Checklist"
+sheet_name = "Adressen_Checklist_ZLimburg"
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 if not GITHUB_TOKEN:
