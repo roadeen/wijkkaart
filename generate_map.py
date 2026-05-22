@@ -27,7 +27,7 @@ OPMERKING_COLOR = '#9b59b6'  # Purple
 # 2. Google Setup
 # ----------------------------
 def get_credentials():
-    creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON_ZL')
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
     if creds_json:
