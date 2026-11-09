@@ -14,6 +14,10 @@ import json
 # ----------------------------
 sheet_name = "Adressen_Checklist"
 
+CARTO_API_KEY = os.environ.get('CARTO_API_KEY')
+if not CARTO_API_KEY:
+    raise ValueError("CARTO_API_KEY environment variable not set.")
+    
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 if not GITHUB_TOKEN:
     raise ValueError("GITHUB_TOKEN environment variable not set.")
