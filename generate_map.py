@@ -75,7 +75,7 @@ LocateControl(auto_start=False, flyTo=True).add_to(m)
 
     LocateControl(auto_start=False, flyTo=True).add_to(m)
 
-    icon_create_function = f"""
+icon_create_function = f"""
     function(cluster) {{
         var childMarkers = cluster.getAllChildMarkers();
         var totalAddresses = 0;
