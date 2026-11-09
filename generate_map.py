@@ -17,7 +17,7 @@ sheet_name = "Adressen_Checklist"
 CARTO_API_KEY = os.environ.get('CARTO_API_KEY')
 if not CARTO_API_KEY:
     raise ValueError("CARTO_API_KEY environment variable not set.")
-    
+
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 if not GITHUB_TOKEN:
     raise ValueError("GITHUB_TOKEN environment variable not set.")
@@ -58,11 +58,18 @@ def generate_interactive_map():
     
     # --- B. Kaart initialiseren ---
     m = folium.Map(
-        location=[df['lat'].mean(), df['lon'].mean()], 
-        zoom_start=16, 
-        tiles='cartodbpositron',
+        location=[df['lat'].mean(), df['lon'].mean()],
+        zoom_start=16,
+        tiles=None,
         control_scale=True
     )
+
+    folium.TileLayer(
+        tiles=f'https://basemaps.cartocdn.com/rastertiles/voyager/{{z}}/{{x}}/{{y}}.png?key={CARTO_API_KEY}',
+        attr='&copy; OpenStreetMap contributors &copy; CARTO',
+        max_zoom=20,
+        name='CARTO Voyager'
+    ).add_to(m)
 
     LocateControl(auto_start=False, flyTo=True).add_to(m)
 
