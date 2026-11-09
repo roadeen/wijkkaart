@@ -115,7 +115,7 @@ icon_create_function = f"""
     }}
     """
 
-    marker_cluster = MarkerCluster(
+marker_cluster = MarkerCluster(
         name='Adressen',
         overlay=True,
         control=True,
