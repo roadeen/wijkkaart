@@ -33,5 +33,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MAP_UPDATE_TOKEN }}
           GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          CARTO_API_KEY: ${{ secrets.CARTO_API_KEY }}
         run: |
           python generate_map.py
