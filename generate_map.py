@@ -65,11 +65,13 @@ def generate_interactive_map():
     )
 
     folium.TileLayer(
-        tiles=f'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key={CARTO_API_KEY}',
+        tiles=f'https://basemaps.cartocdn.com/rastertiles/voyager/{{z}}/{{x}}/{{y}}.png?key={CARTO_API_KEY}',
         attr='&copy; OpenStreetMap contributors &copy; CARTO',
         max_zoom=20,
         name='CARTO Voyager'
     ).add_to(m)
+
+LocateControl(auto_start=False, flyTo=True).add_to(m)
 
     LocateControl(auto_start=False, flyTo=True).add_to(m)
 
